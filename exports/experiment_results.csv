@@ -1,0 +1,13 @@
+experiment_group,breakdown_type,breakdown_value,arpu,arppu,conversion_rate_pct,ftd_30day_rate_pct,d1_retention_pct,d7_retention_pct,d30_retention_pct,avg_spins_per_session,royal_token_conversion_rate_pct
+Control,Overall,Overall,16.56,,18.32,15.84,25.97,20.89,7.23,69.45,
+Treatment,Overall,Overall,23.17,,19.23,16.66,25.53,21.16,7.82,70.77,8.39
+Control,Segment,Minnow,0.38,4.03,,,,,,,
+Control,Segment,Dolphin,18.56,23.29,,,,,,,
+Control,Segment,Whale,414.3,420.1,,,,,,,
+Treatment,Segment,Minnow,0.34,3.49,,,,,,,
+Treatment,Segment,Dolphin,15.02,19.09,,,,,,,
+Treatment,Segment,Whale,557.38,568.81,,,,,,,
+Control,Platform,iOS,17.65,,,,,,,,
+Control,Platform,Android,15.09,,,,,,,,
+Treatment,Platform,iOS,28.08,,,,,,,,
+Treatment,Platform,Android,16.46,,,,,,,,

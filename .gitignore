@@ -1,0 +1,13 @@
+# Database — too large for GitHub (regenerate with: py simulate.py --seed 42)
+*.db
+*.db-shm
+*.db-wal
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Claude internal
+.claude/
+.scratch/
