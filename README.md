@@ -1,6 +1,6 @@
 # Royal Flush Casino — Player Behavior & A/B Test Analysis
 
-> A end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
+> An end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
 
 **[View Live Tableau Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboard_17795442475170/OverviewDashboard)**
 
