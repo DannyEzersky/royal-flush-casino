@@ -102,11 +102,11 @@ royal-flush-casino/
 │   ├── dau.sql               # Daily Active Users
 │   ├── arpu.sql              # Average Revenue Per User
 │   ├── retention_d1/d7/d30   # Cohort retention curves
-│   ├── churn.sql             # 7-day churn window (ADR-0002)
+│   ├── churn.sql             # 14-day churn window (ADR-0002)
 │   ├── experiment_*.sql      # A/B test breakdowns
 │   └── ...
 │
-├── export_tableau.py         # Generates the three Tableau-ready CSVs
+├── export_tableau.py         # Generates six Tableau-ready CSVs
 │
 ├── exports/
 │   ├── players_data.csv      # One row per player — lifetime metrics + attributes
@@ -221,5 +221,5 @@ The live dashboard covers DAU/MAU trends, ARPU, retention curves, A/B experiment
 | Platforms | iOS 58% / Android 42% |
 | Markets | US 48% / UK 13% / DE 9% / CA 8% / AU 7% / Other 15% |
 | Daily play probability | Minnow 22% / Dolphin 50% / Whale 80% |
-| Churn window | 7 days (ADR-0002) |
+| Churn window | 14 days (ADR-0002) |
 | Random seed | 42 |

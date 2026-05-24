@@ -250,6 +250,41 @@ def build_daily_sessions(conn: sqlite3.Connection) -> None:
 # retention_cohorts.csv
 # ---------------------------------------------------------------------------
 
+def build_daily_metrics(conn: sqlite3.Connection) -> None:
+    print("Building daily_metrics.csv...")
+
+    arpdau     = {r["session_date"]: r["arpdau"]         for r in _run(conn, "arpdau.sql")}
+    payer_ratio = {r["session_date"]: r["payer_ratio_pct"] for r in _run(conn, "payer_ratio.sql")}
+    dau_rows   = _run(conn, "dau.sql")
+
+    rows = []
+    for r in dau_rows:
+        d = r["session_date"]
+        rows.append({
+            "session_date":    d,
+            "dau":             r["dau"],
+            "arpdau":          arpdau.get(d, 0),
+            "payer_ratio_pct": payer_ratio.get(d, 0),
+        })
+
+    _write(
+        EXPORT_DIR / "daily_metrics.csv",
+        rows,
+        ["session_date", "dau", "arpdau", "payer_ratio_pct"],
+    )
+
+
+def build_ltv_by_segment(conn: sqlite3.Connection) -> None:
+    print("Building ltv_by_segment.csv...")
+    rows = _run(conn, "ltv_by_segment.sql")
+    _write(
+        EXPORT_DIR / "ltv_by_segment.csv",
+        rows,
+        ["spend_segment", "total_players", "paying_players",
+         "conversion_pct", "ltv_all_players", "ltv_paying_only"],
+    )
+
+
 def build_retention_cohorts(conn: sqlite3.Connection) -> None:
     print("Building retention_cohorts.csv...")
 
@@ -311,6 +346,8 @@ def main() -> None:
         build_experiment_results(conn)
         build_players_data(conn)
         build_daily_sessions(conn)
+        build_daily_metrics(conn)
+        build_ltv_by_segment(conn)
         build_retention_cohorts(conn)
     finally:
         conn.close()
