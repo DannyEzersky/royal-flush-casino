@@ -27,9 +27,9 @@ SPIN_RANGE = {
 }
 
 PURCHASE_PROB_BASE = {
-    "Minnow":  0.02,
-    "Dolphin": 0.08,
-    "Whale":   0.25,
+    "Minnow":  0.001,
+    "Dolphin": 0.004,
+    "Whale":   0.0125,
 }
 IOS_PURCHASE_UPLIFT = 1.5
 

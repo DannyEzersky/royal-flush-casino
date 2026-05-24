@@ -34,16 +34,16 @@ PLATFORM_WEIGHTS = {
 
 # Coin bundle tiers: (amount_usd, coins)
 COIN_BUNDLES = {
-    "small": (1.99, 1_000),
-    "medium": (4.99, 3_000),
-    "large": (19.99, 15_000),
+    "small":  (29.99,  10_000),
+    "medium": (79.99,  30_000),
+    "large":  (349.99, 150_000),
 }
 
 # Royal Token bundle tiers: (amount_usd, tokens)
 ROYAL_TOKEN_BUNDLES = {
-    "starter": (0.99, 10),
-    "standard": (3.99, 50),
-    "value": (9.99, 200),
+    "starter":  (9.99,   100),
+    "standard": (39.99,  500),
+    "value":    (99.99, 2_000),
 }
 
 DB_PATH = "royal_flush_casino.db"
