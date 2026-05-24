@@ -45,7 +45,7 @@ REGULAR_COIN_COST  = 100   # coins wagered per regular Spin
 ROYAL_TOKEN_COST   = 1     # Royal Tokens wagered per Royal Spin
 ROYAL_COIN_BASE    = 500   # coin base for Royal Spin payout (multiplied by payout_multiplier)
 
-CHURN_DAYS       = 7
+CHURN_DAYS       = 14
 SECONDS_PER_SPIN = 5
 BATCH_SIZE       = 20_000  # rows per executemany flush
 
