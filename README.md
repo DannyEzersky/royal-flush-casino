@@ -139,32 +139,52 @@ pip install -r requirements.txt
 
 **1. Generate the database** (~2 minutes, deterministic)
 
+Windows:
 ```bash
 py simulate.py --seed 42
+```
+Mac/Linux:
+```bash
+python3 simulate.py --seed 42
 ```
 
 This creates `royal_flush_casino.db` (~1.9 GB) with 50,000 players, their sessions, spins, and transactions across the full 181-day simulation period.
 
 **2. Export CSVs for Tableau**
 
+Windows:
 ```bash
 py export_tableau.py
+```
+Mac/Linux:
+```bash
+python3 export_tableau.py
 ```
 
 Writes three files to `exports/` — the database is not included in this repo due to its size.
 
 **3. Build the A/B test presentation**
 
+Windows:
 ```bash
 py build_presentation.py
+```
+Mac/Linux:
+```bash
+python3 build_presentation.py
 ```
 
 Writes `exports/royal_spin_ab_test.pptx`.
 
 **4. Run the test suite**
 
+Windows:
 ```bash
 py -m pytest
+```
+Mac/Linux:
+```bash
+python3 -m pytest
 ```
 
 ---
