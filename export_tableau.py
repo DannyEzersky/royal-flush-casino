@@ -1,6 +1,12 @@
 """
-Reads from royal_flush_casino.db and writes three CSV files to exports/
-for Tableau Public consumption.
+Reads from royal_flush_casino.db and writes four CSV files to exports/
+for Tableau Public consumption (star-schema layout).
+
+  dim_players.csv       — one row per player (dimension)
+  fact_sessions.csv     — one row per player per day (fact)
+  fact_transactions.csv — one row per transaction (fact)
+  retention_cohorts.csv — pre-aggregated D1/D7/D30 cohorts (Tableau LOD for
+                          cohort analysis is painful; pre-aggregate instead)
 
 Usage: python export_tableau.py
 """
@@ -11,25 +17,8 @@ from pathlib import Path
 
 import config
 
-SQL_DIR    = Path("sql")
 EXPORT_DIR = Path("exports")
 ROW_WARN   = 9_000_000   # warn before hitting Tableau's 10M row limit
-
-EXPERIMENT_GROUPS = ("Control", "Treatment")
-SEGMENTS          = ("Minnow", "Dolphin", "Whale")
-PLATFORMS         = ("iOS", "Android")
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _run(conn: sqlite3.Connection, filename: str) -> list[dict]:
-    """Execute a SQL file and return rows as a list of dicts."""
-    sql = (SQL_DIR / filename).read_text(encoding="utf-8")
-    cur = conn.execute(sql)
-    cols = [d[0] for d in cur.description]
-    return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 def _write(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
@@ -45,113 +34,12 @@ def _write(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# experiment_results.csv
+# dim_players.csv
 # ---------------------------------------------------------------------------
 
-def build_experiment_results(conn: sqlite3.Connection) -> None:
-    print("Building experiment_results.csv...")
+def build_dim_players(conn: sqlite3.Connection) -> None:
+    print("Building dim_players.csv...")
 
-    # --- Overall breakdown ---
-    arpu_overall = {r["experiment_group"]: r["arpu"]
-                    for r in _run(conn, "experiment_arpu.sql")}
-    retention    = {r["experiment_group"]: r
-                    for r in _run(conn, "experiment_retention.sql")}
-    spins        = {r["experiment_group"]: r["avg_spins_per_session"]
-                    for r in _run(conn, "experiment_spins_per_session.sql")}
-    ftd30        = {r["experiment_group"]: r["ftd_30_day_rate"]
-                    for r in _run(conn, "experiment_ftd_30day.sql")}
-    conv         = {r["experiment_group"]: r["conversion_rate"]
-                    for r in _run(conn, "experiment_conversion_rate.sql")}
-
-    # royal_token_conversion_rate.sql returns one scalar for Treatment only
-    royal_rate = _run(conn, "royal_token_conversion_rate.sql")[0]["royal_token_conversion_rate"]
-
-    overall_rows = []
-    for grp in EXPERIMENT_GROUPS:
-        ret = retention.get(grp, {})
-        overall_rows.append({
-            "experiment_group":                grp,
-            "breakdown_type":                  "Overall",
-            "breakdown_value":                 "Overall",
-            "arpu":                            arpu_overall.get(grp),
-            "arppu":                           None,
-            "conversion_rate_pct":             conv.get(grp),
-            "ftd_30day_rate_pct":              ftd30.get(grp),
-            "d1_retention_pct":                ret.get("d1_retention"),
-            "d7_retention_pct":                ret.get("d7_retention"),
-            "d30_retention_pct":               ret.get("d30_retention"),
-            "avg_spins_per_session":           spins.get(grp),
-            "royal_token_conversion_rate_pct": royal_rate if grp == "Treatment" else None,
-        })
-
-    # --- Segment breakdown ---
-    arpu_seg  = {(r["experiment_group"], r["spend_segment"]): r["arpu"]
-                 for r in _run(conn, "experiment_arpu_by_segment.sql")}
-    arppu_seg = {(r["experiment_group"], r["spend_segment"]): r["arppu"]
-                 for r in _run(conn, "experiment_arppu_by_segment.sql")}
-
-    segment_rows = []
-    for grp in EXPERIMENT_GROUPS:
-        for seg in SEGMENTS:
-            segment_rows.append({
-                "experiment_group":                grp,
-                "breakdown_type":                  "Segment",
-                "breakdown_value":                 seg,
-                "arpu":                            arpu_seg.get((grp, seg)),
-                "arppu":                           arppu_seg.get((grp, seg)),
-                "conversion_rate_pct":             None,
-                "ftd_30day_rate_pct":              None,
-                "d1_retention_pct":                None,
-                "d7_retention_pct":                None,
-                "d30_retention_pct":               None,
-                "avg_spins_per_session":           None,
-                "royal_token_conversion_rate_pct": None,
-            })
-
-    # --- Platform breakdown ---
-    # experiment_arpu_by_platform.sql returns Pre-experiment rows too — filter here
-    arpu_plat = {
-        (r["experiment_group"], r["platform"]): r["arpu"]
-        for r in _run(conn, "experiment_arpu_by_platform.sql")
-        if r["experiment_group"] in EXPERIMENT_GROUPS
-    }
-
-    platform_rows = []
-    for grp in EXPERIMENT_GROUPS:
-        for plat in PLATFORMS:
-            platform_rows.append({
-                "experiment_group":                grp,
-                "breakdown_type":                  "Platform",
-                "breakdown_value":                 plat,
-                "arpu":                            arpu_plat.get((grp, plat)),
-                "arppu":                           None,
-                "conversion_rate_pct":             None,
-                "ftd_30day_rate_pct":              None,
-                "d1_retention_pct":                None,
-                "d7_retention_pct":                None,
-                "d30_retention_pct":               None,
-                "avg_spins_per_session":           None,
-                "royal_token_conversion_rate_pct": None,
-            })
-
-    _write(
-        EXPORT_DIR / "experiment_results.csv",
-        overall_rows + segment_rows + platform_rows,
-        ["experiment_group", "breakdown_type", "breakdown_value",
-         "arpu", "arppu", "conversion_rate_pct", "ftd_30day_rate_pct",
-         "d1_retention_pct", "d7_retention_pct", "d30_retention_pct",
-         "avg_spins_per_session", "royal_token_conversion_rate_pct"],
-    )
-
-
-# ---------------------------------------------------------------------------
-# players_data.csv
-# ---------------------------------------------------------------------------
-
-def build_players_data(conn: sqlite3.Connection) -> None:
-    print("Building players_data.csv...")
-
-    # Pre-aggregate transactions to avoid Cartesian product with sessions.
     sql = """
         WITH player_tx AS (
             SELECT
@@ -185,7 +73,7 @@ def build_players_data(conn: sqlite3.Connection) -> None:
     rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
     _write(
-        EXPORT_DIR / "players_data.csv",
+        EXPORT_DIR / "dim_players.csv",
         rows,
         ["player_id", "install_date", "install_month", "spend_segment",
          "market", "platform", "experiment_group",
@@ -195,14 +83,12 @@ def build_players_data(conn: sqlite3.Connection) -> None:
 
 
 # ---------------------------------------------------------------------------
-# daily_sessions.csv
+# fact_sessions.csv
 # ---------------------------------------------------------------------------
 
-def build_daily_sessions(conn: sqlite3.Connection) -> None:
-    print("Building daily_sessions.csv...")
+def build_fact_sessions(conn: sqlite3.Connection) -> None:
+    print("Building fact_sessions.csv...")
 
-    # Aggregate transactions to player+date first to avoid row-multiplication
-    # when a player has multiple sessions on the same day.
     sql = """
         WITH daily_tx AS (
             SELECT
@@ -238,7 +124,7 @@ def build_daily_sessions(conn: sqlite3.Connection) -> None:
     rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
     _write(
-        EXPORT_DIR / "daily_sessions.csv",
+        EXPORT_DIR / "fact_sessions.csv",
         rows,
         ["player_id", "session_date", "spin_count", "coins_spent",
          "royal_tokens_spent", "purchase_made", "daily_revenue",
@@ -247,43 +133,46 @@ def build_daily_sessions(conn: sqlite3.Connection) -> None:
 
 
 # ---------------------------------------------------------------------------
-# retention_cohorts.csv
+# fact_transactions.csv
 # ---------------------------------------------------------------------------
 
-def build_daily_metrics(conn: sqlite3.Connection) -> None:
-    print("Building daily_metrics.csv...")
+def build_fact_transactions(conn: sqlite3.Connection) -> None:
+    print("Building fact_transactions.csv...")
 
-    arpdau     = {r["session_date"]: r["arpdau"]         for r in _run(conn, "arpdau.sql")}
-    payer_ratio = {r["session_date"]: r["payer_ratio_pct"] for r in _run(conn, "payer_ratio.sql")}
-    dau_rows   = _run(conn, "dau.sql")
-
-    rows = []
-    for r in dau_rows:
-        d = r["session_date"]
-        rows.append({
-            "session_date":    d,
-            "dau":             r["dau"],
-            "arpdau":          arpdau.get(d, 0),
-            "payer_ratio_pct": payer_ratio.get(d, 0),
-        })
+    sql = """
+        SELECT
+            t.transaction_id,
+            t.player_id,
+            t.transaction_date,
+            t.currency_type,
+            t.bundle_tier,
+            t.amount_usd,
+            t.quantity_received,
+            p.spend_segment,
+            p.market,
+            p.platform,
+            p.experiment_group,
+            p.install_date
+        FROM transactions t
+        JOIN players p ON p.player_id = t.player_id
+        ORDER BY t.transaction_date, t.transaction_id
+    """
+    cur  = conn.execute(sql)
+    cols = [d[0] for d in cur.description]
+    rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
     _write(
-        EXPORT_DIR / "daily_metrics.csv",
+        EXPORT_DIR / "fact_transactions.csv",
         rows,
-        ["session_date", "dau", "arpdau", "payer_ratio_pct"],
+        ["transaction_id", "player_id", "transaction_date", "currency_type",
+         "bundle_tier", "amount_usd", "quantity_received",
+         "spend_segment", "market", "platform", "experiment_group", "install_date"],
     )
 
 
-def build_ltv_by_segment(conn: sqlite3.Connection) -> None:
-    print("Building ltv_by_segment.csv...")
-    rows = _run(conn, "ltv_by_segment.sql")
-    _write(
-        EXPORT_DIR / "ltv_by_segment.csv",
-        rows,
-        ["spend_segment", "total_players", "paying_players",
-         "conversion_pct", "ltv_all_players", "ltv_paying_only"],
-    )
-
+# ---------------------------------------------------------------------------
+# retention_cohorts.csv
+# ---------------------------------------------------------------------------
 
 def build_retention_cohorts(conn: sqlite3.Connection) -> None:
     print("Building retention_cohorts.csv...")
@@ -311,13 +200,13 @@ def build_retention_cohorts(conn: sqlite3.Connection) -> None:
                 ) * 100.0 / COUNT(DISTINCT p.player_id), 2
             ) AS d30_retention_pct
         FROM players p
-        LEFT JOIN sessions s1  ON s1.player_id  = p.player_id
+        LEFT JOIN sessions s1  ON s1.player_id   = p.player_id
                                AND s1.session_date = DATE(p.install_date, '+1 day')
-                               AND s1.spin_count >= 1
-        LEFT JOIN sessions s7  ON s7.player_id  = p.player_id
+                               AND s1.spin_count  >= 1
+        LEFT JOIN sessions s7  ON s7.player_id   = p.player_id
                                AND s7.session_date = DATE(p.install_date, '+7 day')
-                               AND s7.spin_count >= 1
-        LEFT JOIN sessions s30 ON s30.player_id = p.player_id
+                               AND s7.spin_count  >= 1
+        LEFT JOIN sessions s30 ON s30.player_id  = p.player_id
                                AND s30.session_date = DATE(p.install_date, '+30 day')
                                AND s30.spin_count >= 1
         WHERE p.install_date <= DATE((SELECT MAX(session_date) FROM sessions), '-30 day')
@@ -343,11 +232,9 @@ def build_retention_cohorts(conn: sqlite3.Connection) -> None:
 def main() -> None:
     conn = sqlite3.connect(config.DB_PATH)
     try:
-        build_experiment_results(conn)
-        build_players_data(conn)
-        build_daily_sessions(conn)
-        build_daily_metrics(conn)
-        build_ltv_by_segment(conn)
+        build_dim_players(conn)
+        build_fact_sessions(conn)
+        build_fact_transactions(conn)
         build_retention_cohorts(conn)
     finally:
         conn.close()
