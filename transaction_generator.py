@@ -5,9 +5,9 @@ import config
 
 # Coin Bundle tier weights by segment
 COIN_BUNDLE_WEIGHTS = {
-    "Minnow":  {"small": 0.70, "medium": 0.25, "large": 0.05},
-    "Dolphin": {"small": 0.30, "medium": 0.50, "large": 0.20},
-    "Whale":   {"small": 0.05, "medium": 0.15, "large": 0.80},
+    "Minnow":  {"micro": 0.20, "small": 0.55, "medium": 0.20, "large": 0.05},
+    "Dolphin": {"micro": 0.05, "small": 0.25, "medium": 0.50, "large": 0.20},
+    "Whale":   {"micro": 0.00, "small": 0.05, "medium": 0.15, "large": 0.80},
 }
 
 # Royal Token Bundle tier weights by segment

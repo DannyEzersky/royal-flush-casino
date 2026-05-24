@@ -34,6 +34,7 @@ PLATFORM_WEIGHTS = {
 
 # Coin bundle tiers: (amount_usd, coins)
 COIN_BUNDLES = {
+    "micro":  (2.99,    1_000),
     "small":  (29.99,  10_000),
     "medium": (79.99,  30_000),
     "large":  (349.99, 150_000),
