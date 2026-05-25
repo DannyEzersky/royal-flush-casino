@@ -171,61 +171,6 @@ def build_fact_transactions(conn: sqlite3.Connection) -> None:
 
 
 # ---------------------------------------------------------------------------
-# retention_cohorts.csv
-# ---------------------------------------------------------------------------
-
-def build_retention_cohorts(conn: sqlite3.Connection) -> None:
-    print("Building retention_cohorts.csv...")
-
-    sql = """
-        SELECT
-            p.install_date,
-            COUNT(DISTINCT p.player_id) AS cohort_size,
-            ROUND(
-                COUNT(DISTINCT CASE
-                    WHEN s1.session_date = DATE(p.install_date, '+1 day')
-                         AND s1.spin_count >= 1 THEN p.player_id END
-                ) * 100.0 / COUNT(DISTINCT p.player_id), 2
-            ) AS d1_retention_pct,
-            ROUND(
-                COUNT(DISTINCT CASE
-                    WHEN s7.session_date = DATE(p.install_date, '+7 day')
-                         AND s7.spin_count >= 1 THEN p.player_id END
-                ) * 100.0 / COUNT(DISTINCT p.player_id), 2
-            ) AS d7_retention_pct,
-            ROUND(
-                COUNT(DISTINCT CASE
-                    WHEN s30.session_date = DATE(p.install_date, '+30 day')
-                         AND s30.spin_count >= 1 THEN p.player_id END
-                ) * 100.0 / COUNT(DISTINCT p.player_id), 2
-            ) AS d30_retention_pct
-        FROM players p
-        LEFT JOIN sessions s1  ON s1.player_id   = p.player_id
-                               AND s1.session_date = DATE(p.install_date, '+1 day')
-                               AND s1.spin_count  >= 1
-        LEFT JOIN sessions s7  ON s7.player_id   = p.player_id
-                               AND s7.session_date = DATE(p.install_date, '+7 day')
-                               AND s7.spin_count  >= 1
-        LEFT JOIN sessions s30 ON s30.player_id  = p.player_id
-                               AND s30.session_date = DATE(p.install_date, '+30 day')
-                               AND s30.spin_count >= 1
-        WHERE p.install_date <= DATE((SELECT MAX(session_date) FROM sessions), '-30 day')
-        GROUP BY p.install_date
-        ORDER BY p.install_date
-    """
-    cur  = conn.execute(sql)
-    cols = [d[0] for d in cur.description]
-    rows = [dict(zip(cols, row)) for row in cur.fetchall()]
-
-    _write(
-        EXPORT_DIR / "retention_cohorts.csv",
-        rows,
-        ["install_date", "cohort_size",
-         "d1_retention_pct", "d7_retention_pct", "d30_retention_pct"],
-    )
-
-
-# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -235,7 +180,6 @@ def main() -> None:
         build_dim_players(conn)
         build_fact_sessions(conn)
         build_fact_transactions(conn)
-        build_retention_cohorts(conn)
     finally:
         conn.close()
     print("Done. Files written to exports/")
