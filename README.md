@@ -1,4 +1,4 @@
-# Royal Flush Casino — Player Behavior & A/B Test Analysis
+# Royal Flush Casino — Player behavior & A/B test analysis
 
 > An end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
 
@@ -30,11 +30,11 @@ The full pipeline covers:
 
 ---
 
-## Key Findings — Royal Spin A/B Test
+## Key findings — Royal Spin A/B test
 
 The Royal Spin mechanic introduced a new premium spin type funded by **Royal Tokens**, a purchasable in-app currency. Treatment players received access to this feature; Control players did not.
 
-### Headline Result
+### Headline result
 
 | Metric | Control | Treatment | Delta |
 |---|---|---|---|
@@ -46,7 +46,7 @@ The Royal Spin mechanic introduced a new premium spin type funded by **Royal Tok
 
 Retention and engagement guardrails all passed — the ARPU lift was driven purely by monetisation, not artificial inflation of playtime.
 
-### Where the Lift Came From
+### Where the lift came from
 
 **Spend segment breakdown:**
 
@@ -79,27 +79,41 @@ Only **2.12%** of Treatment players purchased Royal Tokens — yet those players
 
 ---
 
-## Methodology Notes
+## Methodology notes
 
-### Why No Spike Is Visible on July 1st in Overall Metrics
+### Why no spike is visible on July 1st in overall metrics
 
 The experiment enrolled players on their **install date**, not retroactively. Players who installed before July 1 were not assigned to a group — meaning experiment participants were a growing subset of the active population throughout July. By the time the cohort was large enough to move aggregate DAU or ARPU meaningfully, the signal had already been diluted across the full player base. This is expected **population dilution** and does not indicate a weak effect — the within-group comparison is the correct unit of analysis.
 
-### Experiment Validity — Stratified Randomization
+### Experiment validity — stratified randomization
 
 Group assignment uses **stratified randomization** — a guaranteed 50/50 Control/Treatment split is enforced within each spend segment. This prevents group imbalances that would otherwise confound experiment results if, for example, Whales were over-represented in Treatment. Result: balanced groups of ~12,500 players each, with near-identical segment composition.
 
-### Known Limitation — Static Spend Segments
+```mermaid
+graph TD
+    A[Player installs app]:::accent0 --> B{Install date >= July 1?}
+    B -->|No| C[No experiment group<br/>Pre-experiment cohort]:::accent3
+    B -->|Yes| D{50/50 stratified assignment}
+    D --> E[Control group<br/>Regular spins only]:::accent1
+    D --> F[Treatment group<br/>Access to Royal Spin]:::accent2
+
+    classDef accent0 fill:#D4AF37,color:#0D1B3E,stroke:#D4AF37
+    classDef accent1 fill:#1A2D5A,color:#fff,stroke:#4a6fa5
+    classDef accent2 fill:#2E7D32,color:#fff,stroke:#2E7D32
+    classDef accent3 fill:#555,color:#fff,stroke:#777
+```
+
+### Known limitation — static spend segments
 
 Spend segments (Minnow, Dolphin, Whale) are assigned at **install time** using a fixed probability distribution and do not change based on observed player behavior. In production, segments would typically be derived from rolling spend windows and updated periodically. This simplification means the simulation cannot model segment migration. Treat segment-level findings as directional rather than precise.
 
-### Further Analysis — CUPED
+### Further analysis — CUPED
 
 The experiment used a simple pre/post comparison. In a production setting, applying **CUPED** (Controlled-experiment Using Pre-Experiment Data) would reduce variance in the ARPU estimate by conditioning on each player's pre-experiment revenue. With a 181-day simulation window and a 90-day experiment period, there is sufficient pre-experiment data for each cohort to make this tractable. CUPED would tighten confidence intervals and potentially surface significant effects in the Dolphin and Minnow segments that are currently inconclusive.
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 royal-flush-casino/
@@ -144,7 +158,7 @@ royal-flush-casino/
 
 ---
 
-## How to Run
+## How to run
 
 **Requirements:** Python 3.11+, packages listed in `requirements.txt`
 
@@ -156,7 +170,7 @@ pip install -r requirements.txt
 
 Windows:
 ```bash
-py simulate.py --seed 42
+python simulate.py --seed 42
 ```
 Mac/Linux:
 ```bash
@@ -169,7 +183,7 @@ This creates `royal_flush_casino.db` (~1.9 GB) with 50,000 players, their sessio
 
 Windows:
 ```bash
-py export_tableau.py
+python export_tableau.py
 ```
 Mac/Linux:
 ```bash
@@ -182,7 +196,7 @@ Writes three star-schema files to `exports/` — the database is not included in
 
 Windows:
 ```bash
-py build_presentation.py
+python build_presentation.py
 ```
 Mac/Linux:
 ```bash
@@ -195,7 +209,7 @@ Writes `exports/royal_spin_ab_test.pptx`.
 
 Windows:
 ```bash
-py -m pytest
+python -m pytest
 ```
 Mac/Linux:
 ```bash
@@ -204,7 +218,7 @@ python3 -m pytest
 
 ---
 
-## Tableau Dashboards
+## Tableau dashboards
 
 The dashboards cover DAU/MAU trends, ARPU, retention curves, A/B experiment results, and segment breakdowns — all calculated dynamically from the star-schema exports.
 
@@ -213,7 +227,7 @@ The dashboards cover DAU/MAU trends, ARPU, retention curves, A/B experiment resu
 
 ---
 
-## Tech Stack
+## Tech stack
 
 | Tool | Usage |
 |---|---|
@@ -226,7 +240,7 @@ The dashboards cover DAU/MAU trends, ARPU, retention curves, A/B experiment resu
 
 ---
 
-## Simulation Parameters
+## Simulation parameters
 
 | Parameter | Value |
 |---|---|
