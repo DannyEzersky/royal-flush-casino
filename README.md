@@ -2,7 +2,17 @@
 
 > An end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
 
-**[View Live Tableau Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboard_17795442475170/OverviewDashboard)**
+**[Executive Overview Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExecutiveOverview)**  |  **[A/B Test Results Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExperimentDashboard)**
+
+---
+
+## Dashboards
+
+### Executive Overview
+![Executive Overview](tableau/dashboard_executive_overview.png)
+
+### A/B Test Results
+![A/B Test Results](tableau/dashboard_ab_test.png)
 
 ---
 
@@ -15,7 +25,7 @@ The full pipeline covers:
 - Synthetic player and session data generation with configurable parameters
 - A/B experiment simulation (Royal Spin feature, July – September 2024)
 - 20+ SQL KPI queries across retention, revenue, engagement, and conversion
-- BI-ready CSV exports structured for dynamic Tableau calculation
+- BI-ready CSV exports structured as a star schema for dynamic Tableau calculation
 - A/B test findings deck built programmatically in PowerPoint
 
 ---
@@ -28,11 +38,11 @@ The Royal Spin mechanic introduced a new premium spin type funded by **Royal Tok
 
 | Metric | Control | Treatment | Delta |
 |---|---|---|---|
-| ARPU | $16.56 | $23.17 | **+40.0%** |
-| Conversion Rate | 18.32% | 19.23% | +0.91pp |
-| FTD 30-Day Rate | 15.84% | 16.66% | +0.82pp |
-| D7 Retention | 20.89% | 21.16% | +0.27pp |
-| Avg Spins / Session | 69.45 | 70.77 | +1.9% |
+| ARPU | $13.59 | $15.15 | **+11.5%** |
+| Conversion Rate | 3.97% | 4.07% | +0.10pp |
+| D7 Retention | 25.29% | 25.78% | +0.49pp |
+| D30 Retention | 21.75% | 22.52% | +0.77pp |
+| Avg Spins / Session | 50.39 | 49.52 | -0.87 |
 
 Retention and engagement guardrails all passed — the ARPU lift was driven purely by monetisation, not artificial inflation of playtime.
 
@@ -42,30 +52,30 @@ Retention and engagement guardrails all passed — the ARPU lift was driven pure
 
 | Segment | Control ARPU | Treatment ARPU | Delta |
 |---|---|---|---|
-| Whale | $414.30 | $557.38 | **+34.5%** |
-| Dolphin | $18.56 | $15.02 | -19.1% ⚠ |
-| Minnow | $0.38 | $0.34 | -10.5% |
+| Whale | $361.81 | $416.04 | **+15.0%** |
+| Dolphin | $13.86 | $13.72 | -1.0% |
+| Minnow | $0.59 | $0.40 | -32.2% |
 
-The additive token model worked as designed for Whales — Royal Token purchases stacked on top of existing coin spend. For Dolphins and Minnows, the substitutive model caused **cannibalization**: Royal Token purchases replaced coin purchases rather than adding to them. Dolphin coin revenue fell by $5,808 while Royal Token revenue only added back $3,905 — a net loss of $1,903 for that segment.
+The additive token model worked as designed for Whales — Royal Token purchases stacked on top of existing coin spend. For Dolphins and Minnows, the substitutive model caused mild **cannibalization**: Royal Token purchases partially replaced coin purchases. Net Dolphin impact was only -$69 across the experiment cohort — negligible in absolute terms. Minnow ARPU is so small that the percentage drop carries no meaningful revenue risk.
 
 **Platform breakdown:**
 
 | Platform | Control ARPU | Treatment ARPU | Delta |
 |---|---|---|---|
-| iOS | $17.65 | $28.08 | **+59.1%** |
-| Android | $15.09 | $16.46 | +9.1% |
+| iOS | $16.55 | $18.37 | **+11.0%** |
+| Android | $9.66 | $10.88 | **+12.7%** |
 
-iOS players responded 6.5× more strongly to the Royal Spin feature than Android players, consistent with the platform's higher baseline monetisation propensity.
+Both platforms responded similarly to the Royal Spin feature, with Android showing a slightly stronger relative lift.
 
 **Royal Token revenue impact:**
 
-Only **8.39%** of Treatment players purchased Royal Tokens — yet those players generated **$55,419**, accounting for **23.2%** of all Treatment revenue. A textbook high-value cohort effect amplified by the premium mechanic.
+Only **2.12%** of Treatment players purchased Royal Tokens — yet those players generated **$27,146**, accounting for **15.3%** of all Treatment revenue. A textbook high-value cohort effect amplified by the premium mechanic.
 
 ### Recommendation
 
-- **Ship** Royal Spin to Whale players on iOS immediately — the lift is strong and no guardrails were triggered
-- **Fix first** for Dolphins — redesign as an additive-only model before broad rollout to avoid continued cannibalization
-- **Monitor** Whale revenue concentration post-launch (93.0% in Treatment vs 88.8% in Control)
+- **Ship** Royal Spin to all players — the lift is consistent across platforms and no guardrails were triggered
+- **Watch** Dolphin cannibalization — redesign the substitutive token model to additive before scaling
+- **Monitor** Whale revenue concentration post-launch (91.0% in Treatment vs 88.7% in Control)
 
 ---
 
@@ -75,9 +85,13 @@ Only **8.39%** of Treatment players purchased Royal Tokens — yet those players
 
 The experiment enrolled players on their **install date**, not retroactively. Players who installed before July 1 were not assigned to a group — meaning experiment participants were a growing subset of the active population throughout July. By the time the cohort was large enough to move aggregate DAU or ARPU meaningfully, the signal had already been diluted across the full player base. This is expected **population dilution** and does not indicate a weak effect — the within-group comparison is the correct unit of analysis.
 
+### Experiment Validity — Stratified Randomization
+
+Group assignment uses **stratified randomization** — a guaranteed 50/50 Control/Treatment split is enforced within each spend segment. This prevents group imbalances that would otherwise confound experiment results if, for example, Whales were over-represented in Treatment. Result: balanced groups of ~12,500 players each, with near-identical segment composition.
+
 ### Known Limitation — Static Spend Segments
 
-Spend segments (Minnow, Dolphin, Whale) are assigned at **install time** using a fixed probability distribution and do not change based on observed player behavior. In production, segments would typically be derived from rolling spend windows and updated periodically. This simplification means the simulation cannot model segment migration — a player who starts spending more will not graduate to Whale status mid-simulation. Treat segment-level findings as directional rather than precise.
+Spend segments (Minnow, Dolphin, Whale) are assigned at **install time** using a fixed probability distribution and do not change based on observed player behavior. In production, segments would typically be derived from rolling spend windows and updated periodically. This simplification means the simulation cannot model segment migration. Treat segment-level findings as directional rather than precise.
 
 ### Further Analysis — CUPED
 
@@ -93,7 +107,7 @@ royal-flush-casino/
 ├── simulate.py               # Entry point — runs the full simulation
 ├── config.py                 # All simulation parameters (player count, weights, dates)
 ├── db.py                     # SQLite schema definition
-├── players.py                # Player generator
+├── players.py                # Player generator (stratified experiment assignment)
 ├── spin_engine.py            # Spin outcome engine (RNG, payout logic)
 ├── session_simulator.py      # Session simulator (daily play, Royal Spin logic)
 ├── transaction_generator.py  # IAP transaction generator
@@ -106,19 +120,20 @@ royal-flush-casino/
 │   ├── experiment_*.sql      # A/B test breakdowns
 │   └── ...
 │
-├── export_tableau.py         # Generates six Tableau-ready CSVs
+├── export_tableau.py         # Generates star-schema CSVs for Tableau
 │
 ├── exports/
-│   ├── players_data.csv      # One row per player — lifetime metrics + attributes
-│   ├── daily_sessions.csv    # One row per player per day — session + revenue detail
-│   └── experiment_results.csv# Pre-aggregated A/B test summary
-│
-├── build_presentation.py     # Builds the A/B test PowerPoint deck programmatically
-├── exports/
+│   ├── dim_players.csv       # One row per player — lifetime metrics + attributes
+│   ├── fact_sessions.csv     # One row per player per day — session + revenue detail
+│   ├── fact_transactions.csv # One row per transaction — IAP detail
 │   └── royal_spin_ab_test.pptx
 │
+├── build_presentation.py     # Builds the A/B test PowerPoint deck programmatically
+│
 ├── tableau/
-│   └── Project Dashboard.twb # Tableau workbook
+│   ├── Project Dashboard Updated.twb          # Tableau workbook
+│   ├── dashboard_executive_overview.png       # Dashboard 1 screenshot
+│   └── dashboard_ab_test.png                  # Dashboard 2 screenshot
 │
 ├── tests/                    # pytest test suite (47 tests)
 ├── docs/
@@ -161,7 +176,7 @@ Mac/Linux:
 python3 export_tableau.py
 ```
 
-Writes three files to `exports/` — the database is not included in this repo due to its size.
+Writes three star-schema files to `exports/` — the database is not included in this repo due to its size.
 
 **3. Build the A/B test presentation**
 
@@ -189,11 +204,12 @@ python3 -m pytest
 
 ---
 
-## Tableau Dashboard
+## Tableau Dashboards
 
-The live dashboard covers DAU/MAU trends, ARPU, retention curves, A/B experiment results, and segment breakdowns — all calculated dynamically from the player-level and daily-session exports.
+The dashboards cover DAU/MAU trends, ARPU, retention curves, A/B experiment results, and segment breakdowns — all calculated dynamically from the star-schema exports.
 
-**[Open in Tableau Public →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboard_17795442475170/OverviewDashboard)**
+- **[Executive Overview](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExecutiveOverview)** — active users, revenue, ARPU, ARPPU, payer ratio, DAU/MAU, and market breakdown
+- **[A/B Test Results](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExperimentDashboard)** — experiment setup, headline lift, ARPU by segment, retention guardrails, and group composition
 
 ---
 
