@@ -60,10 +60,10 @@ The additive token model worked as designed for Whales — Royal Token purchases
 
 **Platform breakdown:**
 
-| Platform | Control Revenue | Treatment Revenue | Delta |
+| Platform | Control ARPU | Treatment ARPU | Delta |
 |---|---|---|---|
-| iOS | $110,308 | $122,655 | **+11.2%** |
-| Android | $48,368 | $54,717 | **+13.1%** |
+| iOS | $16.55 | $18.37 | **+11.0%** |
+| Android | $9.66 | $10.88 | **+12.7%** |
 
 Both platforms responded similarly to the Royal Spin feature, with Android showing a slightly stronger relative lift.
 
