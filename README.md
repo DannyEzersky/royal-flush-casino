@@ -109,14 +109,20 @@ Spend segments (Minnow, Dolphin, Whale) are assigned at **install time** using a
 
 ### Statistical significance
 
-A Welch t-test on per-player ARPU and a two-proportion Z-test on conversion rate were run against the full randomized cohorts (~12,400 players per group).
+Three tests were run against the full randomized cohorts (~12,400 players per group).
 
-| Metric | p-value | 95% CI | Result |
-|---|---|---|---|
-| ARPU | 0.26 | (-$1.12, +$4.13) | Not significant |
-| Conversion rate | 0.67 | (-0.37pp, +0.58pp) | Not significant |
+| Test | Metric | p-value | 95% CI | Result |
+|---|---|---|---|---|
+| Welch t-test | ARPU | 0.26 | (-$1.12, +$4.13) | Not significant |
+| Mann-Whitney U | ARPU (rank-based) | 0.66 | n/a | Not significant |
+| Two-proportion Z-test | Conversion rate | 0.67 | (-0.37pp, +0.58pp) | Not significant |
 
-Neither result clears the p < 0.05 threshold. This is expected given the highly right-skewed revenue distribution — Whale outliers inflate the variance so much that ~12k players per group are insufficient to detect a $1.51 difference in means. The point estimate (+11.5%) is real but the confidence interval is wide. CUPED (see below) is the standard remedy.
+None clear the p < 0.05 threshold. The reason is structural: **96% of players spend $0**, so both tests are dominated by zeros. The median revenue is $0.00 in both groups — meaning Mann-Whitney, which works on ranks, effectively becomes a conversion rate test and finds the same result.
+
+This is a known challenge with ARPU on skewed gaming revenue. The +11.5% point estimate reflects real Whale behavior but the confidence interval is too wide to be conclusive. The standard remedies are:
+- **CUPED** — condition out pre-experiment revenue to reduce variance
+- **Two-part model** — test conversion rate and ARPPU (among payers only) separately, each with lower variance than combined ARPU
+- **Larger sample** — more players or a longer experiment window
 
 ### Further analysis — CUPED
 

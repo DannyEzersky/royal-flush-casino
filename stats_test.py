@@ -140,14 +140,37 @@ def print_results(results: list[dict]) -> None:
         print(f"    Treatment:  {r['treatment']}  (n={r['n_trt']:,})")
         print(f"    Difference: {r['diff']}  95% CI: {r['ci_95']}")
         print(f"    p-value:    {r['p_value']:.4f}   {sig_str}")
-        print(f"    Effect size: {r['effect']}  =>  {interpret(r['p_value'], r['effect'])}")
+        interp = r.get("_interp") or interpret(r["p_value"], r["effect"])
+        print(f"    Effect size: {r['effect']}  =>  {interp}")
     print("\n" + "="*70 + "\n")
+
+
+def mannwhitney_test(ctrl: np.ndarray, trt: np.ndarray) -> dict:
+    stat, p_val = stats.mannwhitneyu(ctrl, trt, alternative="two-sided")
+    # Rank-biserial correlation as effect size (r = 1 - 2U / n1*n2)
+    n1, n2 = len(ctrl), len(trt)
+    r = 1 - (2 * stat) / (n1 * n2)
+    size = "large" if abs(r) >= 0.5 else ("medium" if abs(r) >= 0.3 else ("small" if abs(r) >= 0.1 else "negligible"))
+    sig = "Significant" if p_val < 0.05 else "Not significant"
+    return {
+        "metric":    "ARPU (Mann-Whitney U)",
+        "control":   f"median ${np.median(ctrl):.2f}",
+        "treatment": f"median ${np.median(trt):.2f}",
+        "diff":      f"U={stat:,.0f}",
+        "ci_95":     "n/a (rank-based)",
+        "p_value":   p_val,
+        "effect":    f"r = {r:.3f}",
+        "n_ctrl":    n1,
+        "n_trt":     n2,
+        "_interp":   f"{sig}, {size} effect",
+    }
 
 
 def get_results(conn: sqlite3.Connection) -> list[dict]:
     ctrl_rev, trt_rev, conv = load_data(conn)
     return [
         arpu_test(ctrl_rev, trt_rev),
+        mannwhitney_test(ctrl_rev, trt_rev),
         conversion_test(conv),
     ]
 
