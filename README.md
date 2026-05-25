@@ -107,9 +107,73 @@ graph TD
 
 Spend segments (Minnow, Dolphin, Whale) are assigned at **install time** using a fixed probability distribution and do not change based on observed player behavior. In production, segments would typically be derived from rolling spend windows and updated periodically. This simplification means the simulation cannot model segment migration. Treat segment-level findings as directional rather than precise.
 
+### Statistical significance
+
+A Welch t-test on per-player ARPU and a two-proportion Z-test on conversion rate were run against the full randomized cohorts (~12,400 players per group).
+
+| Metric | p-value | 95% CI | Result |
+|---|---|---|---|
+| ARPU | 0.26 | (-$1.12, +$4.13) | Not significant |
+| Conversion rate | 0.67 | (-0.37pp, +0.58pp) | Not significant |
+
+Neither result clears the p < 0.05 threshold. This is expected given the highly right-skewed revenue distribution — Whale outliers inflate the variance so much that ~12k players per group are insufficient to detect a $1.51 difference in means. The point estimate (+11.5%) is real but the confidence interval is wide. CUPED (see below) is the standard remedy.
+
 ### Further analysis — CUPED
 
 The experiment used a simple pre/post comparison. In a production setting, applying **CUPED** (Controlled-experiment Using Pre-Experiment Data) would reduce variance in the ARPU estimate by conditioning on each player's pre-experiment revenue. With a 181-day simulation window and a 90-day experiment period, there is sufficient pre-experiment data for each cohort to make this tractable. CUPED would tighten confidence intervals and potentially surface significant effects in the Dolphin and Minnow segments that are currently inconclusive.
+
+---
+
+## SQL query library
+
+27 queries across four categories, each runnable directly against `royal_flush_casino.db`.
+
+**Core engagement**
+
+| File | What it answers |
+|---|---|
+| `dau.sql` | Daily Active Users over time |
+| `mau.sql` | Monthly Active Users over time |
+| `dau_mau_ratio.sql` | DAU/MAU stickiness ratio by month |
+| `avg_session_length.sql` | Average session duration in minutes per day |
+| `avg_spin_count.sql` | Average spins per session per day |
+| `churn.sql` | 14-day churn rate — players with no session in the last 14 days |
+
+**Revenue & monetization**
+
+| File | What it answers |
+|---|---|
+| `arpu.sql` | Average Revenue Per User across all players |
+| `arppu.sql` | Average Revenue Per Paying User |
+| `arpdau.sql` | Average Revenue Per Daily Active User |
+| `payer_ratio.sql` | Share of active users who have made a purchase |
+| `overall_conversion_rate.sql` | All-time payer conversion rate |
+| `monthly_conversion_rate.sql` | Payer conversion rate by calendar month |
+| `ftd.sql` | First-time deposit count by date |
+| `ftd_30day_rate.sql` | % of players who make their first purchase within 30 days of install |
+| `royal_token_conversion_rate.sql` | Royal Token adoption rate among Treatment players |
+| `ltv_by_segment.sql` | LTV for all players and paying-only, broken out by spend segment |
+
+**Retention**
+
+| File | What it answers |
+|---|---|
+| `retention_d1.sql` | D1 retention rate by install date |
+| `retention_d7.sql` | D7 retention rate by install date |
+| `retention_d30.sql` | D30 retention rate by install date |
+
+**A/B experiment**
+
+| File | What it answers |
+|---|---|
+| `experiment_arpu.sql` | ARPU for Control vs Treatment |
+| `experiment_arpu_by_segment.sql` | ARPU × spend segment × experiment group |
+| `experiment_arpu_by_platform.sql` | ARPU × platform × experiment group |
+| `experiment_arppu_by_segment.sql` | ARPPU × spend segment × experiment group |
+| `experiment_conversion_rate.sql` | Payer conversion rate by experiment group |
+| `experiment_ftd_30day.sql` | FTD 30-day rate by experiment group |
+| `experiment_retention.sql` | D1/D7/D30 retention by experiment group |
+| `experiment_spins_per_session.sql` | Average spins per session by experiment group |
 
 ---
 
@@ -140,8 +204,10 @@ royal-flush-casino/
 │   ├── dim_players.csv       # One row per player — lifetime metrics + attributes
 │   ├── fact_sessions.csv     # One row per player per day — session + revenue detail
 │   ├── fact_transactions.csv # One row per transaction — IAP detail
+│   ├── cohort_revenue.csv    # D7/D30/D60/D90 LTV per install-month cohort
 │   └── royal_spin_ab_test.pptx
 │
+├── stats_test.py             # Welch t-test (ARPU) + Z-test (conversion rate) with CIs
 ├── build_presentation.py     # Builds the A/B test PowerPoint deck programmatically
 │
 ├── tableau/

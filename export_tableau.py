@@ -171,6 +171,25 @@ def build_fact_transactions(conn: sqlite3.Connection) -> None:
 
 
 # ---------------------------------------------------------------------------
+# cohort_revenue.csv
+# ---------------------------------------------------------------------------
+
+def build_cohort_revenue(conn: sqlite3.Connection) -> None:
+    print("Building cohort_revenue.csv...")
+
+    sql = (Path("sql") / "cohort_revenue.sql").read_text(encoding="utf-8")
+    cur  = conn.execute(sql)
+    cols = [d[0] for d in cur.description]
+    rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+
+    _write(
+        EXPORT_DIR / "cohort_revenue.csv",
+        rows,
+        ["install_month", "cohort_size", "d7_ltv", "d30_ltv", "d60_ltv", "d90_ltv"],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -180,6 +199,7 @@ def main() -> None:
         build_dim_players(conn)
         build_fact_sessions(conn)
         build_fact_transactions(conn)
+        build_cohort_revenue(conn)
     finally:
         conn.close()
     print("Done. Files written to exports/")

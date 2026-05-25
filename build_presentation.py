@@ -12,6 +12,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 
 import config
+import stats_test
 
 # ---------------------------------------------------------------------------
 # Brand colours
@@ -101,6 +102,9 @@ def load_metrics(conn: sqlite3.Connection) -> dict:
         GROUP BY p.experiment_group
     """).fetchall())
 
+    # Statistical significance
+    stat_results = {r["metric"]: r for r in stats_test.get_results(conn)}
+
     # Derived scalars
     ca, ta   = arpu["Control"], arpu["Treatment"]
     arpu_lift = round((ta - ca) / ca * 100)
@@ -131,6 +135,7 @@ def load_metrics(conn: sqlite3.Connection) -> dict:
         "dolph_trt_token": d_trt_token, "dolph_net": d_net,
         "whale_share": whale_share, "active_days": active_days,
         "ios_lift": ios_lift, "and_lift": and_lift, "whale_seg_lift": whale_seg_lift,
+        "stat_results": stat_results,
     }
 
 
@@ -384,14 +389,33 @@ def slide_headline(prs, m):
           "Retention is statistically flat between groups — the Royal Spin feature did not harm engagement.",
           size=13, colour=MID_GREY, align=PP_ALIGN.CENTER)
 
-    box(sl, Inches(0.5), Inches(5.15), W-Inches(1), Inches(1.95),
+    # Key takeaway
+    box(sl, Inches(0.5), Inches(5.15), W-Inches(1), Inches(1.1),
         bg=RGBColor(0x0A, 0x14, 0x30), border=GOLD, border_pt=2)
-    txbox(sl, Inches(0.7), Inches(5.25), W-Inches(1.4), Inches(0.45),
+    txbox(sl, Inches(0.7), Inches(5.25), W-Inches(1.4), Inches(0.35),
           "KEY TAKEAWAY", size=11, bold=True, colour=GOLD)
-    txbox(sl, Inches(0.7), Inches(5.65), W-Inches(1.4), Inches(1.2),
+    txbox(sl, Inches(0.7), Inches(5.58), W-Inches(1.4), Inches(0.6),
           f"Treatment players spent {m['arpu_lift']}% more on average than Control, while session "
           f"engagement remained identical. The ARPU lift is driven purely by monetisation, not playtime inflation.",
-          size=14, colour=WHITE, wrap=True)
+          size=13, colour=WHITE, wrap=True)
+
+    # Statistical significance
+    arpu_stat = m["stat_results"].get("ARPU", {})
+    conv_stat = m["stat_results"].get("Conversion rate", {})
+    arpu_p    = arpu_stat.get("p_value", 1.0)
+    conv_p    = conv_stat.get("p_value", 1.0)
+    arpu_ci   = arpu_stat.get("ci_95", "")
+    stat_colour = AMBER  # honest: not significant, but direction is positive
+
+    box(sl, Inches(0.5), Inches(6.35), W-Inches(1), Inches(0.95),
+        bg=RGBColor(0x1A, 0x14, 0x00), border=AMBER, border_pt=1.5)
+    txbox(sl, Inches(0.7), Inches(6.42), Inches(4), Inches(0.35),
+          "STATISTICAL VALIDITY", size=11, bold=True, colour=AMBER)
+    txbox(sl, Inches(0.7), Inches(6.75), W-Inches(1.4), Inches(0.45),
+          f"ARPU: p={arpu_p:.2f}, 95% CI {arpu_ci}  |  "
+          f"Conversion: p={conv_p:.2f}  |  "
+          f"Note: high revenue skew (Whale outliers) inflates variance — CUPED would reduce it.",
+          size=11, colour=LIGHT_GREY, wrap=True)
 
 
 def slide_royal_token(prs, m):
