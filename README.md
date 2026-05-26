@@ -2,7 +2,7 @@
 
 > An end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
 
-**[Executive Overview Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExecutiveOverview)**  |  **[A/B Test Results Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExperimentDashboard)**
+**[Executive Overview Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardExecutiveOverview/ExecutiveOverview)**  |  **[A/B Test Results Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardABTest/ExperimentDashboard)**
 
 ---
 
@@ -294,8 +294,8 @@ python3 -m pytest
 
 The dashboards cover DAU/MAU trends, ARPU, retention curves, A/B experiment results, and segment breakdowns — all calculated dynamically from the star-schema exports.
 
-- **[Executive Overview](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExecutiveOverview)** — active users, revenue, ARPU, ARPPU, payer ratio, DAU/MAU, and market breakdown
-- **[A/B Test Results](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardUpdated/ExperimentDashboard)** — experiment setup, headline lift, ARPU by segment, retention guardrails, and group composition
+- **[Executive Overview](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardExecutiveOverview/ExecutiveOverview)** — active users, revenue, ARPU, ARPPU, payer ratio, DAU/MAU, and market breakdown
+- **[A/B Test Results](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardABTest/ExperimentDashboard)** — experiment setup, headline lift, ARPU by segment, retention guardrails, and group composition
 
 ---
 
