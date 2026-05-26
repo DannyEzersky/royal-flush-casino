@@ -2,7 +2,7 @@
 
 > An end-to-end data analytics portfolio project simulating player behavior for a fictional social casino slot machine game. Built to demonstrate the analytics skills expected in a **Gaming Analyst** role: KPI design, cohort analysis, A/B test evaluation, and BI-ready data modeling.
 
-**[Executive Overview Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardExecutiveOverview/ExecutiveOverview)**  |  **[A/B Test Results Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardABTest/ExperimentDashboard)**
+**[Executive Overview Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardExecutiveOverview/ExecutiveOverview)**  |  **[A/B Test Results Dashboard →](https://public.tableau.com/app/profile/danny.ezersky/viz/ProjectDashboardABTest/ExperimentDashboard)**  |  **[All Dashboards →](https://public.tableau.com/app/profile/danny.ezersky)**
 
 ---
 
